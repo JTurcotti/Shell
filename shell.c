@@ -9,6 +9,7 @@
 char *getprompt();
 int execline(char *line);
 
+
 //forms prompt for user input in shell session
 char *getprompt() {
   char host[32];
@@ -35,10 +36,14 @@ int execline(char *line) {
   if (terms[0])
     if (strcmp(terms[0], "exit") == 0) {
       kill(0, SIGINT);
-    }else if (strcmp(terms[0], "cd") == 0)
-      chdir(terms[1]);
-    else if (execvp(terms[0], terms) == -1)
-      printf("Invalid command\n");
+    } else if (strcmp(terms[0], "cd") == 0) {
+      if (chdir(terms[1]) != 0) {
+	char msg[32];
+	sprintf(msg, "shell: cd: %s", terms[1]);
+	perror(msg);
+      }
+    } else if (execvp(terms[0], terms) == -1)
+      printf("No command '%s' found\n", terms[0]);
   return 0;
 }
  
