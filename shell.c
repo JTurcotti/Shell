@@ -1,14 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <signal.h>
+#include "header.h"
 
-char *getprompt();
-int execline(char *line);
-
+int stdin_temp;
+int stdout_temp;
 
 //forms prompt for user input in shell session
 char *getprompt() {
@@ -23,16 +16,39 @@ char *getprompt() {
   return prompt;
 }
 
-//executes a single command (possibly with multiple terms)
-int execline(char *line) {
-  char *terms[16];
-  int n = 0;
+//executes a single line (possibly with multiple terms, but no semicolons)
+int exec_line(char *line) {
+  char **terms = malloc(16);
+  int n = 1;
 
   const char *delimiters = " \t\n";
   terms[0] = strtok(line, delimiters);
-  while (terms[++n] = strtok(NULL, delimiters));
-  
-  //parses terms by terms[0], the file/command to be executed
+  int redir_in_active = 0;
+  int redir_out_active = 0;
+  char *term;
+  while (term = strtok(NULL, delimiters)) {
+    if (redir_in_active) {
+      redir_in(term);
+      redir_in_active = 0;
+    } else if (redir_out_active) {
+      redir_out(term);
+      redir_out_active = 0;
+    } else if (strcmp(term, "<") == 0)
+      redir_in_active = 1;
+    else if (strcmp(term, ">") == 0)
+      redir_out_active = 1;
+    else//*/
+      terms[n++] = term;
+  }
+  exec_cmd(terms, n);
+  redir_reset();
+  free(terms);
+  return 0;
+}
+
+//executes a single command without piping or redirection, parses by terms[0]
+int exec_cmd(char **terms, int len) {
+  print_arr(terms, len);
   if (terms[0])
     if (strcmp(terms[0], "exit") == 0) {
       kill(0, SIGINT);
@@ -45,6 +61,21 @@ int execline(char *line) {
     } else if (execvp(terms[0], terms) == -1)
       printf("No command '%s' found\n", terms[0]);
   return 0;
+}
+
+void redir_in(char *filename) {
+  int file = fileno(fopen(filename, "r"));
+  dup2(file, 0);
+}
+
+void redir_out(char *filename) {
+  int file = fileno(fopen(filename, "w"));
+  dup2(file, 1);
+}
+
+void redir_reset() {
+  dup2(stdin_temp, 0);
+  dup2(stdout_temp, 1);
 }
  
 int main () {
@@ -59,8 +90,17 @@ int main () {
     int pid;
     do
       if ((pid = fork()) == 0)
-	execline(subline);
+	exec_line(subline);
       else wait(NULL);
     while (subline = strtok(NULL, ";"));
   }
 }
+
+void print_arr(char **arr, int len) {
+  printf("[");
+  int n;
+  for (n = 0; n < len; n++)
+    printf("%s, ", arr[n]);
+  printf("]\n");
+}
+      
