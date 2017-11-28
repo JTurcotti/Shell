@@ -37,9 +37,10 @@ int exec_line(char *line) {
       redir_in_active = 1;
     else if (strcmp(term, ">") == 0)
       redir_out_active = 1;
-    else//*/
+      else//*/
       terms[n++] = term;
   }
+  terms[n] = NULL; //null delimiting
   exec_cmd(terms, n);
   redir_reset();
   free(terms);
@@ -48,7 +49,6 @@ int exec_line(char *line) {
 
 //executes a single command without piping or redirection, parses by terms[0]
 int exec_cmd(char **terms, int len) {
-  print_arr(terms, len);
   if (terms[0])
     if (strcmp(terms[0], "exit") == 0) {
       kill(0, SIGINT);
@@ -59,7 +59,8 @@ int exec_cmd(char **terms, int len) {
 	perror(msg);
       }
     } else if (execvp(terms[0], terms) == -1)
-      printf("No command '%s' found\n", terms[0]);
+      printf("%s: command not found\n", terms[0]);
+
   return 0;
 }
 
@@ -101,6 +102,6 @@ void print_arr(char **arr, int len) {
   int n;
   for (n = 0; n < len; n++)
     printf("%s, ", arr[n]);
-  printf("]\n");
+  printf("%d]\n", len);
 }
       
