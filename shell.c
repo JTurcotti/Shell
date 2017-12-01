@@ -16,6 +16,31 @@ char *getprompt() {
   return prompt;
 }
 
+int exec_piped_line(char *line) {
+  char *pipechr;
+  if (!(pipechr = strchr(line, '|')))
+    exec_line(line); //line contains no pipes
+  else {
+    char *left = malloc(32);
+    char *right = malloc (32);
+    strcpy(left, strtok(line, "|"));
+    strcpy(right, strtok(line, "|"));
+
+    int piper[2];
+    pipe(piper);
+
+    if (fork() == 0) {
+      close(piper[0]);
+      dup2(piper[0], 1);
+      exec_line(line);
+    } else {
+      close(piper[1]);
+      dup2(piper[1], 0);
+      exec_line(line);
+    }
+  }
+}
+
 //executes a single line (possibly with multiple terms, but no semicolons)
 int exec_line(char *line) {
   char **terms = malloc(16);
@@ -42,6 +67,7 @@ int exec_line(char *line) {
   }
   terms[n] = NULL; //null delimiting
   exec_cmd(terms, n);
+  //cleanup if execvp fails
   redir_reset();
   free(terms);
   return 0;
@@ -91,7 +117,7 @@ int main () {
     int pid;
     do
       if ((pid = fork()) == 0)
-	exec_line(subline);
+	exec_piped_line(subline);
       else wait(NULL);
     while (subline = strtok(NULL, ";"));
   }
