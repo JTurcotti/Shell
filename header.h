@@ -15,4 +15,3 @@ void redir_in(char *filename);
 void redir_out(char *filename);
 void redir_reset();
 void print_arr(char **arr, int len);
-

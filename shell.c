@@ -1,9 +1,10 @@
 #include "header.h"
 
+// copy of stdin and stdout to copy back to
 int stdin_temp;
 int stdout_temp;
 
-//forms prompt for user input in shell session
+// creates the prompt for user
 char *getprompt() {
   char host[32];
   gethostname(host, 32);
@@ -16,17 +17,22 @@ char *getprompt() {
   return prompt;
 }
 
-//executes a single line (possibly with multiple terms, but no semicolons)
+// executes a single line (possibly with multiple terms, but no semicolons)
 int exec_line(char *line) {
-  char **terms = malloc(16);
-  int n = 1;
-
+  // terms is the set up for execlp
+  char **terms;
   const char *delimiters = " \t\n";
+
   terms[0] = strtok(line, delimiters);
+
+  // checks if redirection is needed
   int redir_in_active = 0;
   int redir_out_active = 0;
-  char *term;
+  char * term;
+  int n = 1;
+  // parses through the rest of the line (if )
   while (term = strtok(NULL, delimiters)) {
+    // check if redirection is required else it's a valid flag
     if (redir_in_active) {
       redir_in(term);
       redir_in_active = 0;
@@ -37,17 +43,16 @@ int exec_line(char *line) {
       redir_in_active = 1;
     else if (strcmp(term, ">") == 0)
       redir_out_active = 1;
-      else//*/
+    else
       terms[n++] = term;
   }
-  terms[n] = NULL; //null delimiting
+  // null delimiting
+  terms[n] = NULL;
   exec_cmd(terms, n);
   redir_reset();
-  free(terms);
-  return 0;
 }
 
-//executes a single command without piping or redirection, parses by terms[0]
+// executes a single command without piping or redirection, parses by terms[0]
 int exec_cmd(char **terms, int len) {
   if (terms[0])
     if (strcmp(terms[0], "exit") == 0) {
@@ -64,11 +69,13 @@ int exec_cmd(char **terms, int len) {
   return 0;
 }
 
+// redirect stdin to the file
 void redir_in(char *filename) {
   int file = fileno(fopen(filename, "r"));
   dup2(file, 0);
 }
 
+// redirect stdout to the file
 void redir_out(char *filename) {
   int file = fileno(fopen(filename, "w"));
   dup2(file, 1);
@@ -78,20 +85,25 @@ void redir_reset() {
   dup2(stdin_temp, 0);
   dup2(stdout_temp, 1);
 }
- 
-int main () {
-  
-  while (1) {
-    printf("%s", getprompt());
-    char line[16 * 32]; //going to store one line of text input
-    fgets(line, 16 * 32, stdin);
 
-    //splits line by semicolons and executes each subline
+
+int main() {
+  char * prompt = getprompt();
+  // this is always running
+  while (1) {
+    // print the prompt
+    printf("%s", prompt);
+
+    // get user input (big size for big inputs)
+    char line[16 * 32];
+    fgets(line, sizeof(line), stdin);
+
+    // get the first command (commands are split by ; in line)
     char *subline = strtok(line, ";");
-    int pid;
+    // have a child run the command while the next token isn't null
     do
-      if ((pid = fork()) == 0)
-	exec_line(subline);
+      if (fork() == 0)
+        exec_line(subline);
       else wait(NULL);
     while (subline = strtok(NULL, ";"));
   }
@@ -104,4 +116,3 @@ void print_arr(char **arr, int len) {
     printf("%s, ", arr[n]);
   printf("%d]\n", len);
 }
-      
