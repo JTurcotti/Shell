@@ -20,6 +20,8 @@ This is a bash-like shell for DW's systems class
 ## Bugs:
 * cding into a different directory and then holding down enter will sometimes(rarely) show the prompt for initial directory and even execute commands as if in the initial directory. (I think it's just my computer's lag)
 * doing ctrl + d breaks the shell and it spams the terminal with the prompt
+* tab is counted as a viable delimiter, but because it appears in the terminal as spaces, it messes up the command input
+* not sure why but I can't seem to redirect another file with commands into the shell and have it recognize it. probably just missing something.
 
 
 ## Files & Headers:
