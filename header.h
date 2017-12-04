@@ -8,10 +8,13 @@
 #include <signal.h>
 #include <fcntl.h>
 
+// comments for functions are in shell.c and header descriptions are in README.md
 char *getprompt();
-int exec_line(char *line);
-int exec_cmd(char **terms, int len);
+void exec_piped_line(char * line);
+void exec_line(char *line);
+void exec_cmd(char **terms, int len);
 void redir_in(char *filename);
 void redir_out(char *filename);
+void redir_out2(char *filename);
 void redir_reset();
 void print_arr(char **arr, int len);
