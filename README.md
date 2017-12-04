@@ -10,8 +10,9 @@ This is a bash-like shell for DW's systems class
 * reading and execing lines of input, including exit and cd
 * fully accurate user prompt (PS1)
 * multiple commands per line with semicolon delimiting
-* redirecting with <, >, and >>
-* piping supported
+* redirection to/from stdout/in (including both at once)
+  - redirect with <, >, and >>
+* simple piping supported
 
 ## Attempted Feaetures:
 * tried to insert ~/ in place of home/<user>/
