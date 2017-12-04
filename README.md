@@ -5,3 +5,4 @@ A bash-like shell for DW's systems class
 * reading and execing lines of input, including exit and cd
 * accurate user prompt (PS1)
 * multiple commands per line with semicolon delimiting
+* redirection to/from stdout/in (including both at once)
